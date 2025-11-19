@@ -1,0 +1,32 @@
+# Dépendances Node.js
+node_modules/
+
+# Variables d'environnement (TRÈS IMPORTANT : contient tes mots de passe)
+.env
+
+# Logs et débug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs
+*.log
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Fichiers système (Mac/Windows)
+.DS_Store
+Thumbs.db
+
+# IDE (VS Code, JetBrains)
+.vscode/
+.idea/
+
+# Builds (si tu en as plus tard)
+dist/
+build/
+
+# Fichiers temporaires
+*.swp
+*.swo
