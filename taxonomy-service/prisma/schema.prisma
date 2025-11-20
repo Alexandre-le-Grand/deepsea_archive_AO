@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Species {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  family      String?
+  subSpecies  String?
+  createdAt   DateTime     @default(now())
+  observations Observation[]
+}
+
+model Observation {
+  id           String    @id @default(uuid())
+  speciesId    String
+  status       String    @default("PENDING")
+  validatedBy  String?
+  validatedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  deletedAt    DateTime?
+
+  species Species @relation(fields: [speciesId], references: [id])
+}
+
+model History {
+  id            String   @id @default(uuid())
+  observationId String
+  userId        String
+  action        String   // "VALIDATED", "REJECTED", "DELETED", "RESTORED"
+  createdAt     DateTime @default(now())
+}
