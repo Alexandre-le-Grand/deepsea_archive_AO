@@ -1,7 +1,6 @@
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+import jwt from 'jsonwebtoken';
 
-exports.verifyToken = (req, res, next) => {
+export const verifyToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -16,7 +15,7 @@ exports.verifyToken = (req, res, next) => {
   }
 };
 
-exports.isAdmin = (req, res, next) => {
+export const isAdmin = (req, res, next) => {
   if (!req.user || req.user.role !== 'ADMIN') {
     return res.status(403).json({ message: 'Réservé aux admins' });
   }

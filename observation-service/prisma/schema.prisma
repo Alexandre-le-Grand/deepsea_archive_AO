@@ -18,7 +18,9 @@ model Species {
   name         String        @unique
   description  String        @db.Text
   authorId     String
-  rarityScore  Float         @default(1.0) // <-- AJOUT ICI (Float car division)
+  rarityScore  Float         @default(1.0)
+  family       String        @default("Unknown") 
+  subSpecies   String        @default("Unknown") 
   createdAt    DateTime      @default(now())
   observations Observation[]
 }
@@ -26,12 +28,12 @@ model Species {
 model Observation {
   id          String    @id @default(uuid())
   speciesId   String
-  authorId    String    // ID de l'user
+  authorId    String
   description String    @db.Text
   status      Status    @default(PENDING)
-  validatedBy String?   // ID de l'expert/admin (nullable)
+  validatedBy String?
   validatedAt DateTime?
   createdAt   DateTime  @default(now())
-
+  deletedAt   DateTime?   // <-- soft delete
   species     Species   @relation(fields: [speciesId], references: [id])
 }
