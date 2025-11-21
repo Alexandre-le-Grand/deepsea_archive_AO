@@ -1,39 +1,39 @@
-generator client {
-  provider = "prisma-client-js"
-}
+  generator client {
+    provider = "prisma-client-js"
+  }
 
-datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
-}
+  datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+  }
 
-enum Status {
-  PENDING
-  VALIDATED
-  REJECTED
-}
+  enum Status {
+    PENDING
+    VALIDATED
+    REJECTED
+  }
 
-model Species {
-  id           String        @id @default(uuid())
-  name         String        @unique
-  description  String        @db.Text
-  authorId     String
-  rarityScore  Float         @default(1.0)
-  family       String        @default("Unknown") 
-  subSpecies   String        @default("Unknown") 
-  createdAt    DateTime      @default(now())
-  observations Observation[]
-}
+  model Species {
+    id           String        @id @default(uuid())
+    name         String        @unique
+    description  String        @db.Text
+    authorId     String
+    rarityScore  Float         @default(1.0)
+    family       String        @default("Unknown") 
+    subSpecies   String        @default("Unknown") 
+    createdAt    DateTime      @default(now())
+    observations Observation[]
+  }
 
-model Observation {
-  id          String    @id @default(uuid())
-  speciesId   String
-  authorId    String
-  description String    @db.Text
-  status      Status    @default(PENDING)
-  validatedBy String?
-  validatedAt DateTime?
-  createdAt   DateTime  @default(now())
-  deletedAt   DateTime?   // <-- soft delete
-  species     Species   @relation(fields: [speciesId], references: [id])
-}
+  model Observation {
+    id          String    @id @default(uuid())
+    speciesId   String
+    authorId    String
+    description String    @db.Text
+    status      Status    @default(PENDING)
+    validatedBy String?
+    validatedAt DateTime?
+    createdAt   DateTime  @default(now())
+    deletedAt   DateTime?   // <-- soft delete
+    species     Species   @relation(fields: [speciesId], references: [id])
+  }

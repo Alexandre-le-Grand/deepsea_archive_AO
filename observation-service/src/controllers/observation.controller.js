@@ -1,13 +1,22 @@
 const { PrismaClient } = require('@prisma/client');
-const axios = require('axios'); 
+const axios = require('axios');
 
 const prisma = new PrismaClient();
 
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001/auth/internal/reputation';
 
-const AUTH_SERVICE_URL = 'http://localhost:3001/auth/internal/reputation';
+const REPUTATION_POINTS = {
+  OBSERVATION_VALIDATED: 3,
+  VALIDATOR: 1,
+  OBSERVATION_REJECTED: -1,
+};
 
+const USER_ROLES = {
+  EXPERT: 'EXPERT',
+  ADMIN: 'ADMIN',
+};
 
-
+const hasValidatorRole = (user) => [USER_ROLES.EXPERT, USER_ROLES.ADMIN].includes(user.role);
 
 async function updateUserReputation(userId, points) {
   try {
@@ -69,7 +78,32 @@ exports.getAllSpecies = async (req, res) => {
   res.json(list);
 };
 
+exports.getSpeciesById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const species = await prisma.species.findUnique({
+      where: { id },
+      include: { observations: true } // optionnel, si tu veux aussi les observations
+    });
+    if (!species) return res.status(404).json({ message: "Espèce introuvable" });
+    res.json(species);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
+exports.getObservationsBySpecies = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const observations = await prisma.observation.findMany({
+      where: { speciesId: id },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(observations);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 exports.createObservation = async (req, res) => {
   try {
@@ -106,56 +140,64 @@ exports.createObservation = async (req, res) => {
   }
 };
 
-
 exports.validateObservation = async (req, res) => {
+  try {
     const { id } = req.params;
     const validatorId = req.user.id;
 
-    if (!['EXPERT', 'ADMIN'].includes(req.user.role)) {
-        return res.status(403).json({ message: 'Rôle insuffisant' });
+    if (!hasValidatorRole(req.user)) {
+      return res.status(403).json({ message: 'Rôle insuffisant' });
     }
 
     const obs = await prisma.observation.findUnique({ where: { id } });
     if (!obs) return res.status(404).json({ message: 'Introuvable' });
     if (obs.authorId === validatorId) return res.status(400).json({ message: 'Auto-validation interdite' });
+    if (obs.status !== 'PENDING') return res.status(400).json({ message: `L'observation a déjà le statut : ${obs.status}` });
 
     const updated = await prisma.observation.update({
-        where: { id },
-        data: {
-            status: 'VALIDATED',
-            validatedBy: validatorId,
-            validatedAt: new Date()
-        }
+      where: { id },
+      data: {
+        status: 'VALIDATED',
+        validatedBy: validatorId,
+        validatedAt: new Date()
+      }
     });
 
-    await updateUserReputation(obs.authorId, 3);
-    await updateUserReputation(validatorId, 1);
+    await updateUserReputation(obs.authorId, REPUTATION_POINTS.OBSERVATION_VALIDATED);
+    await updateUserReputation(validatorId, REPUTATION_POINTS.VALIDATOR);
 
     await updateSpeciesRarity(obs.speciesId);
 
     res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 exports.rejectObservation = async (req, res) => {
+  try {
     const { id } = req.params;
     const validatorId = req.user.id;
 
-    if (!['EXPERT', 'ADMIN'].includes(req.user.role)) return res.status(403).json({ message: 'Rôle insuffisant' });
+    if (!hasValidatorRole(req.user)) return res.status(403).json({ message: 'Rôle insuffisant' });
 
     const obs = await prisma.observation.findUnique({ where: { id } });
     if (!obs) return res.status(404).json({ message: 'Introuvable' });
+    if (obs.status !== 'PENDING') return res.status(400).json({ message: `L'observation a déjà le statut : ${obs.status}` });
 
     const updated = await prisma.observation.update({
-        where: { id },
-        data: {
-            status: 'REJECTED',
-            validatedBy: validatorId,
-            validatedAt: new Date()
-        }
+      where: { id },
+      data: {
+        status: 'REJECTED',
+        validatedBy: validatorId,
+        validatedAt: new Date()
+      }
     });
 
-    await updateUserReputation(obs.authorId, -1);
+    await updateUserReputation(obs.authorId, REPUTATION_POINTS.OBSERVATION_REJECTED);
 
     res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
-

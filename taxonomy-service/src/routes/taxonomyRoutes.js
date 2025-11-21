@@ -8,8 +8,7 @@ const router = express.Router();
 router.get('/stats', verifyToken, getStats);
 
 // Suppression logique d'une observation (ADMIN ou EXPERT)
-router.patch('/observations/:id/delete', verifyToken, deleteObservation);
-
+router.patch('/observations/:id/delete', verifyToken, isAdmin, deleteObservation);
 // Restauration d'une observation (ADMIN)
 router.patch('/observations/:id/restore', verifyToken, isAdmin, restoreObservation);
 
