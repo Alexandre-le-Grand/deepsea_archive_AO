@@ -12,7 +12,7 @@ CHEKKOURI Omar
 
 ## 🏗️ Architecture Technique
 
-Le projet est divisé en deux microservices distincts communiquant entre eux :
+Le projet est divisé en trois microservices distincts communiquant entre eux :
 
 ### 1. Auth-Service (Port 3001)
 * **Rôle :** Gestion des utilisateurs, authentification et permissions.
@@ -28,6 +28,11 @@ Le projet est divisé en deux microservices distincts communiquant entre eux :
   * Validation/Rejet par les Experts/Admins.
   * Délai de 5 minutes entre deux observations.
   * Communication avec *Auth-Service* pour mettre à jour la réputation.
+
+### 3. taxonomy-service (Port 4000)
+* **Rôle :**Récuperation et spression des éspeces
+* **Base de données :** MySQL (`deepsea_obs`).
+* **Logique métier :** soft delete, recuperation de delete, affichage des stats
 
 **Stack :** Node.js, Express, Prisma ORM, MySQL, Axios.
 
