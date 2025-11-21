@@ -32,7 +32,7 @@ Le projet est divisé en trois microservices distincts communiquant entre eux :
 ### 3. taxonomy-service (Port 4000)
 * **Rôle :**Récuperation et spression des éspeces
 * **Base de données :** MySQL (`deepsea_obs`).
-* **Logique métier :** soft delete, recuperation de delete
+* **Logique métier :** soft delete, recuperation de delete, affichage des stats
 
 **Stack :** Node.js, Express, Prisma ORM, MySQL, Axios.
 
